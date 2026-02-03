@@ -1,62 +1,164 @@
-import { useExporterStore } from "./store/useExporterStore";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { toast } from "sonner";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { FileCode2, Clock, Code2, Check, Copy } from 'lucide-react';
+import { Toaster } from './components/ui/sonner';
+import { Sidebar } from './components/shared/sidebar';
+import { MainEditor } from './components/common/main-editor';
+import { ResponseGallery } from './components/common/response-gallery';
+import { useFloorPlan } from './hooks/useFloorPlan.hook';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import Footer from './components/common/footer';
 
 export default function App() {
-  const { config, updateField, setConfig, fetchFloorPlan, loading } = useExporterStore();
+  const {
+    history,
+    currentConfig,
+    fileConfigInfo,
+    apiResponse,
+    isLoading,
+    updateConfig,
+    importConfig,
+    selectFromHistory,
+    generateFloorPlan
+  } = useFloorPlan();
 
-  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      try {
-        setConfig(JSON.parse(ev.target?.result as string));
-        toast.success("Configuration loaded!");
-      } catch {
-        toast.error("Invalid JSON file");
-      }
-    };
-    reader.readAsText(file);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    const text = JSON.stringify(currentConfig, null, 2);
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    toast.success('Đã sao chép cấu hình vào bộ nhớ tạm');
+    setTimeout(() => setCopied(false), 2000);
   };
 
+  useEffect(() => {
+    if (history.length === 0) {
+      toast.warning('Lịch sử cấu hình trống. Vui lòng nhập (import) hoặc tạo cấu hình mới.');
+    }
+    if (currentConfig == null && history.length > 0) {
+      selectFromHistory(history[0]);
+    }
+  }, []);
+
   return (
-    <div className="container mx-auto p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
-      {/* CỘT TRÁI: FORM CHỈNH SỬA */}
-      <Card shadow-lg>
-        <CardHeader>
-          <CardTitle>Editor Settings</CardTitle>
-          <Input type="file" onChange={handleUpload} accept=".json" className="mt-2" />
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="space-y-2">
-            <Label>Wall Color</Label>
-            <div className="flex gap-2">
-              <Input type="color" value={config.wall_color} onChange={(e) => updateField('wall_color', e.target.value)} className="w-12 h-10 p-1" />
-              <Input type="text" value={config.wall_color} onChange={(e) => updateField('wall_color', e.target.value)} />
+    <>
+      <div className="flex h-auto min-h-screen w-full overflow-hidden bg-[#f8fafc]">
+        <Sidebar
+          currentSelected={{
+            name: fileConfigInfo?.name || 'Chưa chọn cấu hình',
+            data: currentConfig,
+            id: fileConfigInfo?.id || 0,
+            timestamp: fileConfigInfo?.timestamp || new Date().toISOString()
+          }}
+          history={history}
+          onSelect={selectFromHistory}
+          onImport={importConfig}
+        />
+        <main className="custom-scrollbar container mx-auto mb-2 flex-1 p-6">
+          <div className="mb-6">
+            <h1 className="mb-1 text-2xl font-bold text-gray-900">
+              Bài Test Cubi Casa - Trình Xuất Sơ Đồ Mặt Bằng
+            </h1>
+            <p className="text-gray-600">
+              Xây dựng ứng dụng một trang để chỉnh sửa cấu hình bộ xuất và tạo sơ đồ mặt bằng qua
+              API
+            </p>
+          </div>
+          <div className="mx-auto grid max-w-400 grid-cols-1 gap-4 lg:grid-cols-2">
+            <div className="flex flex-col gap-4 overflow-hidden">
+              {fileConfigInfo && (
+                <div className="animate-in fade-in slide-in-from-top-4 flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-5 py-4 duration-500">
+                  <div className="flex items-center gap-4">
+                    <div className="flex h-12 w-12 items-center justify-center">
+                      <FileCode2 size={36} className="text-slate-600" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-lg font-semibold text-slate-900">
+                          {fileConfigInfo.name}
+                        </h3>
+                      </div>
+                      <div className="mt-1 flex items-center gap-4">
+                        <p className="flex items-center gap-1.5 text-sm font-medium text-slate-500">
+                          <Clock size={13} className="text-slate-400" />
+                          {new Date(fileConfigInfo.timestamp).toLocaleString('vi-VN', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: '2-digit'
+                          })}
+                        </p>
+                        <span className="h-1 w-1 rounded-full bg-slate-300"></span>
+                        <p className="font-mono text-sm">ID: {fileConfigInfo.id}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              <div className="flex-1 rounded-2xl border border-slate-200 bg-white p-6">
+                <MainEditor
+                  config={currentConfig}
+                  updateConfig={updateConfig}
+                  onSubmit={generateFloorPlan}
+                  isLoading={isLoading}
+                />
+              </div>
+            </div>
+            <div className="flex flex-col gap-4 overflow-hidden">
+              <div className="custom-scrollbar flex flex-1 flex-col overflow-y-auto rounded-2xl border border-slate-200 bg-white p-6">
+                <div className="mb-4 flex items-center gap-2">
+                  <h2 className="text-sm font-bold tracking-tight text-slate-800 uppercase">
+                    Kết quả sơ đồ mặt bằng
+                  </h2>
+                </div>
+                <ResponseGallery responseData={apiResponse} isLoading={isLoading} />
+              </div>
+              <div className="flex h-1/2 flex-1 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white p-6">
+                <div className="mb-4 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Code2 size={18} className="text-slate-500" />
+                    <h2 className="text-sm font-bold tracking-tight text-slate-800 uppercase">
+                      Xem trước JSON trực tiếp
+                    </h2>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={handleCopy}
+                      className="flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-medium text-slate-600 shadow-sm transition-all hover:bg-slate-50 active:scale-95"
+                    >
+                      {copied ? (
+                        <Check size={12} className="text-emerald-500" />
+                      ) : (
+                        <Copy size={12} />
+                      )}
+                      {copied ? 'Đã chép' : 'Sao chép JSON'}
+                    </button>
+                    
+                  </div>
+                </div>
+                <div className="relative max-h-96 flex-1 overflow-hidden rounded-xl border border-slate-800 bg-[#0F172B]">
+                  <div className="absolute top-0 right-0 left-0 flex h-8 items-center border-b border-white/5 bg-slate-800/50 px-4">
+                    <div className="flex gap-1.5">
+                      <div className="h-2.5 w-2.5 rounded-full bg-red-500/80"></div>
+                      <div className="h-2.5 w-2.5 rounded-full bg-amber-500/80"></div>
+                      <div className="h-2.5 w-2.5 rounded-full bg-emerald-500/80"></div>
+                    </div>
+                  </div>
+                  <div className="custom-scrollbar-dark h-full w-full overflow-auto px-4 pt-8 pb-4">
+                    <pre className="font-mono text-[11px] leading-5 text-blue-300">
+                      {JSON.stringify(currentConfig, null, 2)}
+                    </pre>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-
-          <div className="flex items-center justify-between p-4 border rounded-lg">
-            <Label>Hide Dimensions</Label>
-            <Switch checked={config.hide_dimensions} onCheckedChange={(v) => updateField('hide_dimensions', v)} />
-          </div>
-
-          <Button className="w-full" onClick={() => fetchFloorPlan("KEY_HERE", "ID_HERE")} disabled={loading}>
-             {loading ? "Generating..." : "Request Floor Plan"}
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* CỘT PHẢI: PREVIEW JSON */}
-      <div className="bg-slate-900 text-slate-50 p-6 rounded-xl overflow-auto max-h-[600px]">
-        <h3 className="text-sm font-mono text-slate-400 mb-4">// Current Configuration</h3>
-        <pre className="text-sm">{JSON.stringify(config, null, 2)}</pre>
+          <Footer />
+        </main>
+        <Toaster richColors position="top-right" />
       </div>
-    </div>
+    </>
   );
 }
