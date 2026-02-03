@@ -23,6 +23,7 @@ export function useFloorPlan() {
   const [fileConfigInfo, setFileConfigInfo] = useState<IFileConfigInfo>();
   const [apiResponse, setApiResponse] = useState<FloorPlanResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isChanging, setIsChanging] = useState(false);
 
   const updateConfig = useCallback((path: string, value: any) => {
     setCurrentConfig((prev) => ConfigService.updateConfigByPath(prev, path, value));
@@ -35,18 +36,17 @@ export function useFloorPlan() {
   }, []);
 
 const selectFromHistory = useCallback((selectedConfig: any) => {
-  setCurrentConfig(selectedConfig.data);
-
-  setFileConfigInfo({
-    name: selectedConfig.name,
-    timestamp: selectedConfig.timestamp.toString(),
-    id: selectedConfig.id.toString()
-  });
-
-  setApiResponse(null);
-
-  const message = `Đã chọn file cấu hình từ lịch sử: ${selectedConfig.name}`;
-  toast.info(message);
+    setIsChanging(true);
+    setTimeout(() => {
+      setCurrentConfig(selectedConfig.data);
+      setFileConfigInfo({
+        name: selectedConfig.name,
+        timestamp: selectedConfig.timestamp.toString(),
+        id: selectedConfig.id.toString()
+      });
+      setApiResponse(null);
+      setIsChanging(false);
+    }, 300);
 }, []);
 
   const generateFloorPlan = useCallback(async () => {
@@ -96,6 +96,7 @@ const selectFromHistory = useCallback((selectedConfig: any) => {
     apiResponse,
     isLoading,
     fileConfigInfo,
+    isChanging,
     updateConfig,
     importConfig,
     selectFromHistory,
