@@ -1,5 +1,7 @@
 # CubiCasa Floor Plan Exporter - Technical Assignment
 
+<img width="1911" height="1068" alt="image" src="https://github.com/user-attachments/assets/72983885-2508-4504-906d-26e1158ff9e8" />
+
 A modern web application for editing and generating CubiCasa floor plan configurations with real-time API integration.
 
 ## Links
