@@ -8,30 +8,8 @@ import { useFloorPlan } from './hooks/useFloorPlan.hook';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import Footer from './components/common/footer';
+import { SkeletonApp } from './components/common/skeleton-app';
 
-const AppSkeleton = () => (
-  <div className="mx-auto grid max-w-400 animate-pulse grid-cols-1 gap-4 lg:grid-cols-2">
-    <div className="flex flex-col gap-4">
-      <div className="h-24 w-full rounded-2xl bg-slate-200" />
-      <div className="flex-1 rounded-2xl border border-slate-200 bg-white p-6">
-        <div className="mb-6 h-6 w-1/3 rounded bg-slate-200" />
-        <div className="space-y-4">
-          <div className="h-40 w-full rounded-xl bg-slate-100" />
-          <div className="h-40 w-full rounded-xl bg-slate-100" />
-        </div>
-      </div>
-    </div>
-    <div className="flex flex-col gap-4">
-      <div className="flex-1 rounded-2xl border border-slate-200 bg-white p-6">
-        <div className="mb-4 h-6 w-1/4 rounded bg-slate-200" />
-        <div className="h-64 w-full rounded-xl bg-slate-100" />
-      </div>
-      <div className="h-1/2 rounded-2xl border border-slate-200 bg-white p-6">
-        <div className="h-40 w-full rounded-xl bg-slate-800" />
-      </div>
-    </div>
-  </div>
-);
 
 export default function App() {
   const {
@@ -93,7 +71,7 @@ export default function App() {
             </p>
           </div>
           {showSkeleton ? (
-            <AppSkeleton />
+            <SkeletonApp />
           ) : (
             <div className="animate-in fade-in zoom-in-95 mx-auto grid max-w-400 grid-cols-1 gap-4 duration-500 lg:grid-cols-2">
               <div className="flex flex-col gap-4 overflow-hidden">
