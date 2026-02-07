@@ -18,7 +18,7 @@ export const SkeletonApp = () => {
       <div className="flex flex-col gap-4">
         <div className="flex-1 rounded-2xl border border-slate-200 bg-white p-6">
           <SkeletonPulse className="mb-4 h-6 w-1/4" />
-          <SkeletonPulse className="h-full min-h-[300px] w-full" />
+          <SkeletonPulse className="h-full min-h-75 w-full" />
         </div>
         <div className="h-1/2 rounded-2xl border border-slate-200 bg-white p-6">
           <div className="mb-4 flex justify-between">

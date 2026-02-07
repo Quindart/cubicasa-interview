@@ -25,24 +25,21 @@ export function ResponseGallery({ responseData, isLoading }: ResponseGalleryProp
         </div>
       </div>
     );
-
   }
   if (!responseData) {
     return (
-      <div className="flex flex-col h-full items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 py-16 text-center">
+      <div className="flex h-full flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 py-16 text-center">
         <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-50">
           <LayoutGrid className="text-slate-300" size={32} />
         </div>
-        <p className="text-sm font-semibold text-slate-500">Chưa có kết quả vẽ</p>
-        <p className="mt-1 max-w-50 text-xs text-slate-400">
-          Thiết lập cấu hình bên trái và nhấn nút "Tạo bản vẽ"
+        <p className="text-sm font-semibold text-slate-500">No results generated yet</p>
+        <p className="mt-1 max-w-xs text-xs text-slate-400">
+          Configure the settings on the left and click "Generate Plan" to see results.
         </p>
       </div>
     );
   }
-
   const images = responseData.Lite?.png || [];
-
   const handleDownload = async (url: string, index: number) => {
     try {
       const response = await fetch(url);
@@ -50,7 +47,7 @@ export function ResponseGallery({ responseData, isLoading }: ResponseGalleryProp
       const downloadUrl = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = downloadUrl;
-      link.download = `mat-bang-${index + 1}.png`;
+      link.download = `floor-plan-${index + 1}.png`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -63,13 +60,13 @@ export function ResponseGallery({ responseData, isLoading }: ResponseGalleryProp
     <div className="space-y-6">
       <div className="flex items-center justify-between border-b border-slate-100 pb-4">
         <div className="flex items-center gap-2 text-slate-900">
-          <h3 className="text-sm font-bold tracking-wider uppercase">Danh sách kết quả</h3>
+          <h3 className="text-sm font-bold tracking-wider uppercase">Generated Assets</h3>
           <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-500">
-            {images.length} FILE
+            {images.length} {images.length > 1 ? 'FILES' : 'FILE'}
           </span>
         </div>
         <div className="flex items-center gap-2 text-[11px] text-slate-400 italic">
-          <Info size={12} /> Tự động lưu vào lịch sử
+          <Info size={12} /> Auto-saved to history
         </div>
       </div>
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">

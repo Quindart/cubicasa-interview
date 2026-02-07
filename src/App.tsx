@@ -1,15 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { FileCode2, Clock, Code2, Check, Copy } from 'lucide-react';
-import { Toaster } from './components/ui/sonner';
-import { Sidebar } from './components/shared/sidebar';
-import { MainEditor } from './components/common/main-editor';
-import { ResponseGallery } from './components/common/response-gallery';
-import { useFloorPlan } from './hooks/useFloorPlan.hook';
+import { Toaster } from '@/components/ui/sonner';
+import { Sidebar } from '@/components/shared/sidebar';
+import { MainEditor } from '@/components/common/main-editor';
+import { ResponseGallery } from '@/components/common/response-gallery';
+import { useFloorPlan } from '@/hooks/useFloorPlan.hook';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import Footer from './components/common/footer';
-import { SkeletonApp } from './components/common/skeleton-app';
-
+import Footer from '@/components/common/footer';
+import { SkeletonApp } from '@/components/common/skeleton-app';
 
 export default function App() {
   const {
@@ -26,23 +25,21 @@ export default function App() {
   } = useFloorPlan();
 
   const [copied, setCopied] = useState(false);
-
   const showSkeleton = isChanging || (history.length > 0 && !currentConfig);
 
   const handleCopy = () => {
     const text = JSON.stringify(currentConfig, null, 2);
     navigator.clipboard.writeText(text);
     setCopied(true);
-    toast.success('Đã sao chép cấu hình vào bộ nhớ tạm');
+    toast.success('Configuration copied to clipboard');
     setTimeout(() => setCopied(false), 2000);
   };
 
   useEffect(() => {
     if (history.length === 0) {
-      toast.warning('Lịch sử cấu hình trống. Vui lòng nhập (import) hoặc tạo cấu hình mới.');
-    }
-    if (currentConfig == null && history.length > 0) {
-      selectFromHistory(history[0]);
+      toast.warning('History is empty. Please import or create a new configuration.');
+    } else if (currentConfig == null) {
+      selectFromHistory(history[history.length - 1]); 
     }
   }, []);
 
@@ -51,7 +48,7 @@ export default function App() {
       <div className="flex h-auto min-h-screen w-full overflow-hidden bg-[#f8fafc]">
         <Sidebar
           currentSelected={{
-            name: fileConfigInfo?.name || 'Chưa chọn cấu hình',
+            name: fileConfigInfo?.name || 'No configuration selected',
             data: currentConfig,
             id: fileConfigInfo?.id || 0,
             timestamp: fileConfigInfo?.timestamp || new Date().toISOString()
@@ -63,13 +60,14 @@ export default function App() {
         <main className="custom-scrollbar container mx-auto mb-2 flex-1 p-6">
           <div className="mb-6">
             <h1 className="mb-1 text-2xl font-bold text-gray-900">
-              Bài Test Cubi Casa - Trình Xuất Sơ Đồ Mặt Bằng
+              CubiCasa Technical Test - Floor Plan Exporter
             </h1>
             <p className="text-gray-600">
-              Xây dựng ứng dụng một trang để chỉnh sửa cấu hình bộ xuất và tạo sơ đồ mặt bằng qua
+              A single-page application to edit exporter configurations and generate floor plans via
               API
             </p>
           </div>
+
           {showSkeleton ? (
             <SkeletonApp />
           ) : (
@@ -88,7 +86,7 @@ export default function App() {
                         <div className="mt-1 flex items-center gap-4 text-sm text-slate-500">
                           <p className="flex items-center gap-1.5">
                             <Clock size={13} />
-                            {new Date(fileConfigInfo.timestamp).toLocaleString('vi-VN')}
+                            {new Date(fileConfigInfo.timestamp).toLocaleString('en-US')}
                           </p>
                           <span className="h-1 w-1 rounded-full bg-slate-300" />
                           <p className="font-mono">ID: {fileConfigInfo.id}</p>
@@ -106,21 +104,23 @@ export default function App() {
                   />
                 </div>
               </div>
+
               <div className="flex flex-col gap-4 overflow-hidden">
                 <div className="custom-scrollbar flex flex-1 flex-col overflow-y-auto rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                   <div className="mb-4 flex items-center gap-2">
                     <h2 className="text-sm font-bold tracking-tight text-slate-800 uppercase">
-                      Kết quả sơ đồ mặt bằng
+                      Floor Plan Results
                     </h2>
                   </div>
                   <ResponseGallery responseData={apiResponse} isLoading={isLoading} />
                 </div>
+
                 <div className="flex h-1/2 flex-1 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                   <div className="mb-4 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Code2 size={18} className="text-slate-500" />
                       <h2 className="text-sm font-bold tracking-tight text-slate-800 uppercase">
-                        Xem trước JSON trực tiếp
+                        Live JSON Preview
                       </h2>
                     </div>
                     <button
@@ -132,7 +132,7 @@ export default function App() {
                       ) : (
                         <Copy size={12} />
                       )}
-                      {copied ? 'Đã chép' : 'Sao chép JSON'}
+                      {copied ? 'Copied' : 'Copy JSON'}
                     </button>
                   </div>
                   <div className="relative max-h-96 flex-1 overflow-hidden rounded-xl border border-slate-800 bg-[#0F172B]">

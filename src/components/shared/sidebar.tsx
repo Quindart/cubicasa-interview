@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { FileJson, Upload, Download } from 'lucide-react'; 
+import { FileJson, Upload, Download } from 'lucide-react';
 import { INITIAL_BODY_DATA } from '@/constants/initialData';
 
 interface HistoryItem {
@@ -18,8 +18,9 @@ interface SidebarProps {
   onImport: (data: any, fileName: string) => void;
 }
 
-export function Sidebar({ history,currentSelected, onSelect, onImport }: SidebarProps) {
+export function Sidebar({ history, currentSelected, onSelect, onImport }: SidebarProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
+
   const handleDownloadSample = () => {
     const dataStr = JSON.stringify(INITIAL_BODY_DATA, null, 2);
     const blob = new Blob([dataStr], { type: 'application/json' });
@@ -44,15 +45,17 @@ export function Sidebar({ history,currentSelected, onSelect, onImport }: Sidebar
         const parsedData = JSON.parse(content);
         onImport(parsedData, file.name);
       } catch (error) {
-        console.error('Lỗi khi parse JSON:', error);
-        alert('File không đúng định dạng JSON!');
+        console.error('JSON Parse Error:', error);
+        alert('Invalid JSON file format!');
       } finally {
         if (fileInputRef.current) fileInputRef.current.value = '';
       }
     };
     reader.readAsText(file);
   };
+
   const triggerFileInput = () => fileInputRef.current?.click();
+
   return (
     <aside className="flex w-64 flex-col bg-slate-900 text-white">
       <div className="border-b border-slate-700 p-4">
@@ -72,7 +75,7 @@ export function Sidebar({ history,currentSelected, onSelect, onImport }: Sidebar
             className="w-full justify-start text-slate-300 hover:bg-slate-800 hover:text-white"
             onClick={handleDownloadSample}
           >
-            <Download className="mr-2 h-4 w-4" /> Tải file mẫu
+            <Download className="mr-2 h-4 w-4" /> Download Sample
           </Button>
         </div>
 
@@ -80,8 +83,8 @@ export function Sidebar({ history,currentSelected, onSelect, onImport }: Sidebar
       </div>
 
       <div className="flex-1 overflow-y-auto p-4">
-        <p className="mb-4 text-md font-bold tracking-wider text-slate-200 uppercase">
-          Lịch sử  file
+        <p className="text-md mb-4 font-bold tracking-wider text-slate-200 uppercase">
+          File History
         </p>
         <div className="space-y-2">
           {history.length > 0 ? (
@@ -94,7 +97,7 @@ export function Sidebar({ history,currentSelected, onSelect, onImport }: Sidebar
               />
             ))
           ) : (
-            <p className="text-xs text-slate-500 italic">Chưa có lịch sử</p>
+            <p className="text-xs text-slate-500 italic">No history available</p>
           )}
         </div>
       </div>
@@ -114,10 +117,14 @@ function HistoryButton({
   return (
     <button
       onClick={() => onSelect(item)}
-      className={` ${currentSelected?.id == item.id ? 'bg-[#03726C] text-white hover:bg-transparent-1/2' : 'text-slate-400'} group flex w-full items-center gap-2 rounded-2xl p-2 text-sm transition-colors px-4  hover:bg-transparent focus:ring-1 focus:ring-slate-400 focus:outline-none`}
+      className={` ${
+        currentSelected?.id == item.id
+          ? 'bg-[#03726C] text-white hover:bg-[#03726C]/90'
+          : 'text-slate-400'
+      } group flex w-full items-center gap-2 rounded-2xl p-2 px-4 text-sm transition-colors hover:bg-slate-800 focus:ring-1 focus:ring-slate-400 focus:outline-none`}
     >
-      <FileJson className={`group-hover:text-main size-7 shrink-0 text-slate-50`} />
-      <span className="truncate text-md text-left group-hover:text-white">{item.name}</span>
+      <FileJson className="size-7 shrink-0 text-slate-50 group-hover:text-white" />
+      <span className="text-md truncate text-left group-hover:text-white">{item.name}</span>
     </button>
   );
 }
