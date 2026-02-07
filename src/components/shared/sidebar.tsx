@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { FileJson, Upload, Download } from 'lucide-react';
+import { FileJson, Upload, Download, CheckCircle2 } from 'lucide-react';
 import { INITIAL_BODY_DATA } from '@/constants/initialData';
 
 interface HistoryItem {
@@ -9,6 +9,7 @@ interface HistoryItem {
   name: string;
   data: any;
   timestamp: Date | string;
+  apiResponse?: any;
 }
 
 interface SidebarProps {
@@ -91,7 +92,7 @@ export function Sidebar({ history, currentSelected, onSelect, onImport }: Sideba
             history.map((item, idx) => (
               <HistoryButton
                 currentSelected={currentSelected}
-                key={`${item.name}-${idx}`}
+                key={`${item.id}-${idx}`}
                 item={item}
                 onSelect={onSelect}
               />
@@ -114,6 +115,8 @@ function HistoryButton({
   onSelect: (data: any) => void;
   currentSelected?: HistoryItem;
 }) {
+  const hasResult = item.apiResponse && item.apiResponse.Lite?.png?.length > 0;
+
   return (
     <button
       onClick={() => onSelect(item)}
@@ -121,10 +124,16 @@ function HistoryButton({
         currentSelected?.id == item.id
           ? 'bg-[#03726C] text-white hover:bg-[#03726C]/90'
           : 'text-slate-400'
-      } group flex w-full items-center gap-2 rounded-2xl p-2 px-4 text-sm transition-colors hover:bg-slate-800 focus:ring-1 focus:ring-slate-400 focus:outline-none`}
+      } group relative flex w-full items-center gap-2 rounded-2xl p-2 px-4 text-sm transition-colors hover:bg-slate-800 focus:ring-1 focus:ring-slate-400 focus:outline-none`}
     >
       <FileJson className="size-7 shrink-0 text-slate-50 group-hover:text-white" />
-      <span className="text-md truncate text-left group-hover:text-white">{item.name}</span>
+      <span className="text-md flex-1 truncate text-left group-hover:text-white">{item.name}</span>
+      {hasResult && (
+        <CheckCircle2
+          size={16}
+          className="shrink-0 text-emerald-400"
+        />
+      )}
     </button>
   );
 }

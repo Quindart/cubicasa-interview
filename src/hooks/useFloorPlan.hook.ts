@@ -17,7 +17,8 @@ export function useFloorPlan() {
       id: 1,
       name: 'Default Configuration',
       timestamp: new Date('2024-01-01T10:00:00'),
-      data: INITIAL_BODY_DATA
+      data: INITIAL_BODY_DATA,
+      apiResponse: null
     }
   ]);
   const [currentConfig, setCurrentConfig] = useState(null);
@@ -32,22 +33,24 @@ export function useFloorPlan() {
 
   const importConfig = useCallback(
     (newData: any, name: string) => {
-      setCurrentConfig(newData);
-      const newHistory = ConfigService.addToHistory(history, name, newData);
+      const newHistory = ConfigService.addToHistory(history, name, newData, null);
       setHistory(newHistory);
-      const latestItem = newHistory[newHistory.length - 1];
+
+      const newItem = newHistory[0];
+      setCurrentConfig(newData);
       setFileConfigInfo({
-        name: latestItem.name,
-        timestamp: latestItem.timestamp.toString(),
-        id: latestItem.id
+        name: newItem.name,
+        timestamp: newItem.timestamp.toString(),
+        id: newItem.id
       });
+      setApiResponse(null); 
 
       toast.success(`Configuration imported: ${name}`);
     },
     [history]
   );
 
-  const selectFromHistory = useCallback((selectedConfig: any) => {
+  const selectFromHistory = useCallback((selectedConfig: ConfigHistoryItem) => {
     setIsChanging(true);
     setTimeout(() => {
       setCurrentConfig(selectedConfig.data);
@@ -56,10 +59,74 @@ export function useFloorPlan() {
         timestamp: selectedConfig.timestamp.toString(),
         id: selectedConfig.id
       });
-      setApiResponse(null);
+      setApiResponse(selectedConfig.apiResponse || null);
       setIsChanging(false);
     }, 300);
   }, []);
+
+  const generateFloorPlan = useCallback(async () => {
+    const validation = ConfigService.validateConfig(currentConfig);
+    if (!validation.isValid) {
+      validation.errors.forEach((error) => toast.error(error));
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const modelId = import.meta.env.VITE_MODEL_ID;
+      if (!modelId || currentConfig == null) {
+        throw new Error('Missing configuration or Model ID');
+      }
+
+      const response = await FloorPlanService.generateFloorPlan(modelId, currentConfig);
+      setApiResponse(response);
+      toast.success('Floor plan generated successfully!');
+
+      if (fileConfigInfo?.id) {
+        setHistory((prev) =>
+          ConfigService.updateHistoryItemResponse(prev, fileConfigInfo.id, response)
+        );
+      }
+    } catch (error: any) {
+      console.error('Floor Plan Generation Error:', error);
+      toast.error(error.message || 'Error calling CubiCasa API');
+
+      if (import.meta.env.DEV) {
+        const mockResponse = FloorPlanService.getMockResponse();
+        setApiResponse(mockResponse);
+
+        if (fileConfigInfo?.id) {
+          setHistory((prev) =>
+            ConfigService.updateHistoryItemResponse(prev, fileConfigInfo.id, mockResponse)
+          );
+        }
+
+        toast.info('Using mock data for development');
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [currentConfig, fileConfigInfo]);
+
+  const saveAsNewVersion = useCallback(() => {
+    if (!currentConfig) {
+      toast.error('No configuration to save');
+      return;
+    }
+
+    const newName = `Floor Plan ${new Date().toLocaleString('en-US')}`;
+    const newHistory = ConfigService.addToHistory(history, newName, currentConfig, apiResponse);
+    setHistory(newHistory);
+
+    const newItem = newHistory[0];
+    setFileConfigInfo({
+      name: newItem.name,
+      timestamp: newItem.timestamp.toString(),
+      id: newItem.id
+    });
+
+    toast.success('Saved as new version');
+  }, [currentConfig, apiResponse, history]);
 
   const exportConfig = useCallback(() => {
     const filename = `floorplan-config-${Date.now()}.json`;
@@ -69,51 +136,10 @@ export function useFloorPlan() {
 
   const resetConfig = useCallback(() => {
     setCurrentConfig(null);
+    setFileConfigInfo(undefined);
+    setApiResponse(null);
     toast.info('Reset to default configuration');
   }, []);
-
-  const generateFloorPlan = useCallback(async () => {
-    const validation = ConfigService.validateConfig(currentConfig);
-    if (!validation.isValid) {
-      validation.errors.forEach((error) => toast.error(error));
-      return;
-    }
-    setIsLoading(true);
-    try {
-      const modelId = import.meta.env.VITE_MODEL_ID;
-      if (!modelId || currentConfig == null) {
-        throw new Error('Missing configuration or Model ID');
-      }
-      const response = await FloorPlanService.generateFloorPlan(modelId, currentConfig);
-      setApiResponse(response);
-      toast.success('Floor plan generated successfully!');
-    } catch (error: any) {
-      console.error('Floor Plan Generation Error:', error);
-      toast.error(error.message || 'Error calling CubiCasa API');
-
-      if (import.meta.env.DEV) {
-        setApiResponse(FloorPlanService.getMockResponse());
-        toast.info('Using mock data for development');
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  }, [currentConfig]);
-
-  const saveToHistory = useCallback(() => {
-    if (!currentConfig || !apiResponse) {
-      toast.error('No configuration or result to save');
-      return;
-    }
-
-    const newHistory = ConfigService.addToHistory(
-      history,
-      `Floor Plan ${new Date().toLocaleString('en-US')}`,
-      currentConfig
-    );
-    setHistory(newHistory);
-    toast.success('Saved to history');
-  }, [currentConfig, apiResponse, history]);
 
   return {
     history,
@@ -126,7 +152,7 @@ export function useFloorPlan() {
     importConfig,
     selectFromHistory,
     generateFloorPlan,
-    saveToHistory,
+    saveAsNewVersion,
     exportConfig,
     resetConfig
   };

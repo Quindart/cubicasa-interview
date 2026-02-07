@@ -283,24 +283,6 @@ export function MainEditor({ config, updateConfig, onSubmit, isLoading }: IMainE
                   </div>
                   <div className="space-y-2">
                     <Label className="text-[11px] font-bold tracking-wider text-gray-700 uppercase">
-                      Output Language
-                    </Label>
-                    <Select
-                      value={getConfigValue('globalModelOptions.unit')} // Note: Consider if this should be a different config key
-                      onValueChange={(v) => updateConfig('globalModelOptions.unit', v)}
-                    >
-                      <SelectTrigger className="h-9 border-slate-200 bg-slate-50/50 shadow-none">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="en-pr">English</SelectItem>
-                        <SelectItem value="vi">Vietnamese</SelectItem>
-                        <SelectItem value="fi">Finnish</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-[11px] font-bold tracking-wider text-gray-700 uppercase">
                       Width (px)
                     </Label>
                     <Input
@@ -343,23 +325,6 @@ export function MainEditor({ config, updateConfig, onSubmit, isLoading }: IMainE
                         updateConfig('exports.0.singleFloor.dpi', Number(e.target.value))
                       }
                     />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-[11px] font-bold tracking-wider text-gray-700 uppercase">
-                      File Format
-                    </Label>
-                    <Select
-                      value={getConfigValue('exports.0.singleFloor.format')}
-                      onValueChange={(v) => updateConfig('exports.0.singleFloor.format', v)}
-                    >
-                      <SelectTrigger className="h-9 border-slate-200 bg-slate-50/50 shadow-none">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="png">PNG Image</SelectItem>
-                        <SelectItem value="svg">SVG Vector</SelectItem>
-                      </SelectContent>
-                    </Select>
                   </div>
                 </div>
               </AccordionContent>

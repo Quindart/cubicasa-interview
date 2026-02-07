@@ -2,32 +2,47 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { produce } from 'immer';
 import { set } from 'lodash';
+import { FloorPlanResponse } from './floorPlan.service';
 
 export interface ConfigHistoryItem {
   id: number;
   name: string;
   data: any;
   timestamp: Date;
+  apiResponse?: FloorPlanResponse | null;
 }
+
 export class ConfigService {
   static updateConfigByPath(config: any, path: string, value: any): any {
-    return produce(config, (draft:any) => {
+    return produce(config, (draft: any) => {
       set(draft, path, value);
     });
   }
+
   static addToHistory(
     currentHistory: ConfigHistoryItem[],
     name: string,
-    data: any
+    data: any,
+    apiResponse?: FloorPlanResponse | null 
   ): ConfigHistoryItem[] {
     const newItem: ConfigHistoryItem = {
       id: Date.now(),
       name,
       data,
-      timestamp: new Date()
+      timestamp: new Date(),
+      apiResponse: apiResponse || null
     };
     return [newItem, ...currentHistory];
   }
+
+  static updateHistoryItemResponse(
+    currentHistory: ConfigHistoryItem[],
+    itemId: number,
+    apiResponse: FloorPlanResponse
+  ): ConfigHistoryItem[] {
+    return currentHistory.map((item) => (item.id === itemId ? { ...item, apiResponse } : item));
+  }
+
   static validateConfig(config: any): { isValid: boolean; errors: string[] } {
     const errors: string[] = [];
 
@@ -44,6 +59,7 @@ export class ConfigService {
       errors
     };
   }
+
   static exportAsJSON(config: any, filename: string = 'config.json'): void {
     const dataStr = JSON.stringify(config, null, 2);
     const dataBlob = new Blob([dataStr], { type: 'application/json' });
@@ -54,6 +70,7 @@ export class ConfigService {
     link.click();
     URL.revokeObjectURL(url);
   }
+
   static async importFromJSON(file: File): Promise<any> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -61,7 +78,7 @@ export class ConfigService {
         try {
           const config = JSON.parse(e.target?.result as string);
           resolve(config);
-        } catch (error : any) {
+        } catch (error: any) {
           reject(new Error('Invalid JSON file'));
         }
       };
@@ -69,5 +86,4 @@ export class ConfigService {
       reader.readAsText(file);
     });
   }
-  
 }
